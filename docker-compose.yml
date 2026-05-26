@@ -4,13 +4,10 @@ services:
     image: alpine/openclaw:2026.5.22
     environment:
       HOME: /home/node
-      TERM: xterm-256color
       OPENCLAW_DISABLE_BONJOUR: "1"
       TZ: Asia/Shanghai
     volumes:
-      - /data/openclaw/data:/home/node/.openclaw
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - ./data:/home/node/.openclaw
     ports:
       - "18789:18789"
     init: true

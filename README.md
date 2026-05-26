@@ -12,9 +12,9 @@ openclaw/                    # 部署目录，整个 copy 到服务器
 └── README.md
 ```
 
-数据目录（容器外持久化）：
+数据目录（与部署目录同级，自动创建）：
 ```
-/data/openclaw/
+openclaw/
 └── data/                    # 主配置目录
 ```
 
@@ -86,7 +86,7 @@ docker compose down
 bash test_model.sh
 
 # 备份配置
-cp /data/openclaw/data/openclaw.json ./openclaw.json.bak
+cp ./data/openclaw.json ./openclaw.json.bak
 ```
 
 ---

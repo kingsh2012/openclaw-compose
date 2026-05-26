@@ -4,7 +4,7 @@
 set -e
 
 DEPLOY_DIR="$(cd "$(dirname "$0")" && pwd)"
-DATA_DIR="/data/openclaw/data"
+DATA_DIR="$DEPLOY_DIR/data"
 CONFIG_SRC="$DEPLOY_DIR/openclaw.json.example"
 CONFIG_DST="$DATA_DIR/openclaw.json"
 ENV_FILE="$DEPLOY_DIR/.env"
