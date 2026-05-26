@@ -71,7 +71,10 @@ docker compose exec openclaw-gateway node dist/index.js pairing list --channel f
 
 在 [https://open.feishu.cn/](https://open.feishu.cn/) 开发者后台，进入应用 → 权限管理，添加以下权限：
 
-**订阅方式：** 事件与回调 → 订阅方式 → 使用长连接接收事件/回调
+**事件与回调配置：**
+
+1. 订阅方式 → 选择「使用长连接接收事件/回调」
+2. 添加事件 → 搜索并添加「接收消息」(`im.message.receive_v1`)
 
 **租户权限（tenant scopes）：**
 
