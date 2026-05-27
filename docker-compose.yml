@@ -40,7 +40,7 @@ services:
       - TZ=Asia/Shanghai
       - CUSTOM_USER=${CHROME_USER}
       - PASSWORD=${CHROME_PASSWORD}
-      - CHROME_CLI=--remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 --remote-allow-origins=*
+      - CHROME_CLI=--remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 --remote-allow-origins=* --disable-blink-features=AutomationControlled
     volumes:
       - ./data/chrome-profile:/config
       - ./chrome-init.d:/custom-cont-init.d:ro
