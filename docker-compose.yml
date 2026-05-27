@@ -14,6 +14,8 @@ services:
     restart: unless-stopped
     depends_on:
       - chrome
+    networks:
+      - openclaw-net
     command:
       ["node", "dist/index.js", "gateway", "--bind", "lan", "--port", "18789"]
     healthcheck:
@@ -34,3 +36,17 @@ services:
     shm_size: 2gb
     environment:
       - TZ=Asia/Shanghai
+    volumes:
+      - ./data/chrome-profile:/data/chrome-profile
+    networks:
+      openclaw-net:
+        ipv4_address: 172.28.0.10
+    command:
+      - --remote-allow-origins=*
+      - --user-data-dir=/data/chrome-profile
+
+networks:
+  openclaw-net:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

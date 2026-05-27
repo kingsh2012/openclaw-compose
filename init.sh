@@ -37,6 +37,7 @@ fi
 
 # 创建数据目录并设置权限
 mkdir -p "$DATA_DIR"
+mkdir -p "$DATA_DIR/chrome-profile"
 setfacl -R -m u:1000:rwx "$DATA_DIR"
 setfacl -d -m u:1000:rwx "$DATA_DIR"
 echo "数据目录已创建：$DATA_DIR"
