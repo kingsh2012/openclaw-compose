@@ -53,6 +53,8 @@ services:
       #   --disable-blink-features=AutomationControlled
       #                                       隐藏 navigator.webdriver=true 标志，
       #                                       防止被网站风控识别为自动化浏览器
+      # 注：Windows UA 由 chrome-init.d/98-set-useragent.sh 注入，
+      #     因 UA 含空格无法直接通过 CHROME_CLI 传递
       - CHROME_CLI=--remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 --remote-allow-origins=* --disable-blink-features=AutomationControlled
     volumes:
       # Chrome 用户数据目录，登录态/Cookie 持久化，容器重启后不丢失
