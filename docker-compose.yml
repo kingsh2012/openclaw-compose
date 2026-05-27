@@ -12,6 +12,8 @@ services:
       - "18789:18789"
     init: true
     restart: unless-stopped
+    depends_on:
+      - chrome
     command:
       ["node", "dist/index.js", "gateway", "--bind", "lan", "--port", "18789"]
     healthcheck:
@@ -24,3 +26,11 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+
+  chrome:
+    image: chromedp/headless-shell:latest
+    container_name: openclaw-chromedp
+    restart: unless-stopped
+    shm_size: 2gb
+    environment:
+      - TZ=Asia/Shanghai

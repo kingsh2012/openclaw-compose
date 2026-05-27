@@ -90,10 +90,14 @@
       },
       "codex": {
         "enabled": true
+      },
+      "browser": {
+        "enabled": true
       }
     },
     "allow": [
-      "feishu"
+      "feishu",
+      "browser"
     ]
   },
   "auth": {
@@ -160,5 +164,9 @@
   },
   "commands": {
     "ownerAllowFrom": []
+  },
+  "browser": {
+    "enabled": true,
+    "cdpUrl": "http://openclaw-chromedp:9222"
   }
 }
