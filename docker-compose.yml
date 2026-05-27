@@ -4,12 +4,15 @@ services:
     image: alpine/openclaw:2026.5.22
     environment:
       HOME: /home/node
+      # 禁用 mDNS/Bonjour 局域网广播，服务器环境不需要
       OPENCLAW_DISABLE_BONJOUR: "1"
       TZ: Asia/Shanghai
     volumes:
+      # 配置目录挂载，openclaw.json 及运行时数据存放于此
       - ./data:/home/node/.openclaw
     ports:
       - "18789:18789"
+    # 使用 tini 作为 PID 1，确保信号正确转发和僵尸进程回收
     init: true
     restart: unless-stopped
     depends_on:
@@ -33,22 +36,38 @@ services:
     image: lscr.io/linuxserver/chromium:latest
     container_name: openclaw-chromedp
     restart: unless-stopped
+    # Chrome 渲染大页面时需要较大共享内存，低于 1gb 容易崩溃
     shm_size: 2gb
     environment:
+      # 容器内运行用户的 uid/gid，与宿主机 data 目录权限对应
       - PUID=1000
       - PGID=1000
       - TZ=Asia/Shanghai
+      # Web UI 登录账号密码，从 .env 读取
       - CUSTOM_USER=${CHROME_USER}
       - PASSWORD=${CHROME_PASSWORD}
+      # Chromium 启动参数：
+      #   --remote-debugging-port=9222        开启 CDP 调试端口
+      #   --remote-debugging-address=0.0.0.0  允许容器外访问（默认只监听 127.0.0.1）
+      #   --remote-allow-origins=*            允许任意来源的 CDP 连接，避免跨容器被拒
+      #   --disable-blink-features=AutomationControlled
+      #                                       隐藏 navigator.webdriver=true 标志，
+      #                                       防止被网站风控识别为自动化浏览器
       - CHROME_CLI=--remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 --remote-allow-origins=* --disable-blink-features=AutomationControlled
     volumes:
+      # Chrome 用户数据目录，登录态/Cookie 持久化，容器重启后不丢失
       - ./data/chrome-profile:/config
+      # 自定义初始化脚本目录：99-cdp-relay.sh 将 0.0.0.0:9223 中继到 127.0.0.1:9222
+      # 供 openclaw-gateway 通过内网 IP 访问 CDP（Chrome 实际绑定在容器 loopback）
       - ./chrome-init.d:/custom-cont-init.d:ro
     ports:
+      # Web UI HTTP（会重定向到 HTTPS）
       - "3000:3000"
+      # Web UI HTTPS，使用自签名证书，浏览器访问时点「继续」即可
       - "3001:3001"
     networks:
       openclaw-net:
+        # 固定 IP，避免容器重启后 IP 变化导致 cdpUrl 失效
         ipv4_address: 172.28.0.10
 
 networks:
