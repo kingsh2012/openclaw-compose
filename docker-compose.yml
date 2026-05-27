@@ -30,23 +30,24 @@ services:
       start_period: 20s
 
   chrome:
-    build:
-      context: .
-      dockerfile: Dockerfile.chrome
-    image: openclaw-chromedp:local
+    image: lscr.io/linuxserver/chromium:latest
     container_name: openclaw-chromedp
     restart: unless-stopped
     shm_size: 2gb
     environment:
+      - PUID=1000
+      - PGID=1000
       - TZ=Asia/Shanghai
+      - PASSWORD=${CHROME_PASSWORD}
+      - CHROME_CLI=--remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 --remote-allow-origins=*
     volumes:
-      - ./data/chrome-profile:/data/chrome-profile
+      - ./data/chrome-profile:/config
+      - ./chrome-init.d:/custom-cont-init.d:ro
+    ports:
+      - "3000:3000"
     networks:
       openclaw-net:
         ipv4_address: 172.28.0.10
-    command:
-      - --remote-allow-origins=*
-      - --user-data-dir=/data/chrome-profile
 
 networks:
   openclaw-net:

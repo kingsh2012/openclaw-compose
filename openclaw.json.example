@@ -167,6 +167,6 @@
   },
   "browser": {
     "enabled": true,
-    "cdpUrl": "http://172.28.0.10:9222"
+    "cdpUrl": "http://172.28.0.10:9223"
   }
 }
