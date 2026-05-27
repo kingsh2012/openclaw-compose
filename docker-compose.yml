@@ -38,6 +38,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Asia/Shanghai
+      - CUSTOM_USER=${CHROME_USER}
       - PASSWORD=${CHROME_PASSWORD}
       - CHROME_CLI=--remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 --remote-allow-origins=*
     volumes:
@@ -45,6 +46,7 @@ services:
       - ./chrome-init.d:/custom-cont-init.d:ro
     ports:
       - "3000:3000"
+      - "3001:3001"
     networks:
       openclaw-net:
         ipv4_address: 172.28.0.10

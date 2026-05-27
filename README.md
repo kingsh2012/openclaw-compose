@@ -7,15 +7,19 @@ openclaw/                    # 部署目录，整个 copy 到服务器
 ├── docker-compose.yml       # 启动配置
 ├── openclaw.json.example    # 配置模板（变量由 .env 注入，勿直接修改）
 ├── .env.example             # 环境变量模板（复制为 .env 后填写真实值）
+├── chrome-init.d/           # Chrome 容器自定义初始化脚本
+│   └── 99-cdp-relay.sh      # CDP 端口中继（0.0.0.0:9223 → 127.0.0.1:9222）
 ├── init.sh                  # 初始化脚本（首次部署用，含防重复 lock）
 ├── test_model.sh            # 测试 API 连通性
 └── README.md
 ```
 
-数据目录（与部署目录同级，自动创建）：
+数据目录（自动创建）：
 ```
 openclaw/
-└── data/                    # 主配置目录
+└── data/
+    ├── openclaw.json        # 运行时配置（由 init.sh 生成）
+    └── chrome-profile/      # Chrome 用户数据，登录态持久化于此
 ```
 
 ---
@@ -26,7 +30,7 @@ openclaw/
 
 ```bash
 cp .env.example .env
-# 编辑 .env，填写 API Key、飞书凭据、服务器 IP 等
+# 编辑 .env，填写 API Key、飞书凭据、Chrome 账号密码等
 ```
 
 ### 第二步：初始化
@@ -36,6 +40,27 @@ bash init.sh
 ```
 
 脚本会自动加载 `.env`、生成配置、启动容器并安装飞书插件。一次性完成，重复执行会被 lock 拦截。
+
+---
+
+## Chrome 可视化界面
+
+系统内置一个带图形界面的 Chrome 浏览器，用于手动扫码登录（大众点评、美团等需要登录的网站）。
+
+**访问地址：** `https://服务器IP:3001`
+
+- 用户名：`.env` 中的 `CHROME_USER`（默认 `admin`）
+- 密码：`.env` 中的 `CHROME_PASSWORD`
+- 首次访问浏览器会提示证书不受信任（自签名），点击「继续访问」即可
+
+**登录流程：**
+
+1. 打开 `https://服务器IP:3001`，进入 Chrome 界面
+2. 访问目标网站（如大众点评），完成扫码登录
+3. 关闭界面即可，session 已自动保存到 `./data/chrome-profile`
+4. 之后 OpenClaw 发起浏览器请求时会复用该登录态
+
+> 登录态在容器重启后依然保留，无需重复登录。
 
 ---
 
@@ -203,6 +228,6 @@ cp ./data/openclaw.json ./openclaw.json.bak
 ## 注意事项
 
 - `.env` 和 `data/openclaw.json` 含 API Key 等敏感信息，不要提交 git
-- 直接编辑 `data/openclaw.json` 后重启容器即可生效，无需重新设置权限
+- 编辑 `data/openclaw.json` 后需执行 `chmod 666 ./data/openclaw.json`，再重启容器
 - 重新初始化时先删除 `.init.lock`，再运行 `bash init.sh`
 - openclaw 只读取 `openclaw.json`，不使用环境变量
