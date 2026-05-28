@@ -64,6 +64,41 @@ bash init.sh
 
 ---
 
+## 飞书群聊授权
+
+默认 `groupPolicy: allowlist`，机器人只响应白名单内的群，其他群消息会被忽略（日志显示 `not in groupAllowFrom`）。
+
+**添加允许的群：**
+
+1. 将机器人拉入目标群
+2. 在群里 @机器人 发任意消息，日志会打印群 ID：
+   ```
+   [feishu] feishu[default]: group oc_xxxxxxxxxxxxxxxx not in groupAllowFrom
+   ```
+3. 将该群 ID 写入 `data/openclaw.json` 的 `channels.feishu.groupAllowFrom`：
+   ```json
+   "groupAllowFrom": ["oc_xxxxxxxxxxxxxxxx"]
+   ```
+4. 保存后执行：
+   ```bash
+   chmod 666 ./data/openclaw.json
+   docker compose restart openclaw-gateway
+   ```
+
+多个群逗号分隔：`["oc_aaa", "oc_bbb"]`
+
+**是否需要 @ 机器人：**
+
+默认 `requireMention: true`，群里必须 @机器人 才会响应。改为 `false` 后机器人会回复群内所有消息：
+
+```json
+"requireMention": false
+```
+
+修改后同样需要 `chmod 666 ./data/openclaw.json` 并重启容器。
+
+---
+
 ## 飞书用户授权（Pairing 模式）
 
 当前使用 `dmPolicy: pairing` 模式，新用户首次私聊机器人时需要管理员授权。

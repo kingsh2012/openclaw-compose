@@ -1,7 +1,7 @@
 services:
   openclaw-gateway:
     container_name: openclaw-gateway
-    image: alpine/openclaw:2026.5.22
+    image: alpine/openclaw:latest
     environment:
       HOME: /home/node
       # 禁用 mDNS/Bonjour 局域网广播，服务器环境不需要
