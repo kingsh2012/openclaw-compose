@@ -97,7 +97,8 @@
     },
     "allow": [
       "feishu",
-      "browser"
+      "browser",
+      "codex"
     ]
   },
   "auth": {
