@@ -59,8 +59,8 @@
     }
   },
   "meta": {
-    "lastTouchedVersion": "2026.5.22",
-    "lastTouchedAt": "2026-05-26T08:00:07.468Z"
+    "lastTouchedVersion": "2026.6.1",
+    "lastTouchedAt": "2026-06-03T19:11:16.000Z"
   },
   "session": {
     "dmScope": "per-channel-peer"
@@ -110,8 +110,8 @@
     }
   },
   "wizard": {
-    "lastRunAt": "2026-05-26T08:00:07.468Z",
-    "lastRunVersion": "2026.5.22",
+    "lastRunAt": "2026-06-03T19:11:16.000Z",
+    "lastRunVersion": "2026.6.1",
     "lastRunCommand": "configure",
     "lastRunMode": "local"
   },

@@ -61,7 +61,7 @@ sleep 15
 
 # 安装飞书插件
 echo "安装飞书插件..."
-docker compose -f "$DEPLOY_DIR/docker-compose.yml" exec openclaw-gateway node dist/index.js plugins install @openclaw/feishu
+docker compose -f "$DEPLOY_DIR/docker-compose.yml" exec openclaw-gateway node dist/index.js plugins install @openclaw/feishu@2026.6.1
 echo "飞书插件安装完成"
 
 # 重启使插件生效
