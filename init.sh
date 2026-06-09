@@ -47,6 +47,16 @@ fi
 envsubst < "$COMPOSE_TPL" > "$COMPOSE_OUT"
 echo "docker-compose.yml 已生成（实例: $INSTANCE_NAME, 端口: $INSTANCE_PORT）"
 
+# 拉取镜像并打版本 tag（Docker Hub 只发布 latest，本地补打具体版本号）
+GATEWAY_IMAGE=$(grep 'image:' "$COMPOSE_OUT" | awk '{print $2}')
+GATEWAY_TAG="${GATEWAY_IMAGE##*:}"
+if ! docker image inspect "$GATEWAY_IMAGE" &>/dev/null; then
+  echo "拉取 gateway 镜像..."
+  docker pull "alpine/openclaw:latest"
+  docker tag "alpine/openclaw:latest" "$GATEWAY_IMAGE"
+  echo "已标记为 $GATEWAY_IMAGE"
+fi
+
 # 创建数据目录并设置权限
 mkdir -p "$DATA_DIR"
 chown -R 1000:1000 "$DATA_DIR"
