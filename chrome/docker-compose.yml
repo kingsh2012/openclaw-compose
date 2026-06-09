@@ -1,0 +1,32 @@
+services:
+  chrome:
+    image: lscr.io/linuxserver/chromium:latest
+    container_name: openclaw-chrome
+    restart: unless-stopped
+    # Chrome 渲染大页面时需要较大共享内存，低于 1gb 容易崩溃
+    shm_size: 2gb
+    env_file: .env
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Shanghai
+      - LC_ALL=zh_CN.UTF-8
+      - CUSTOM_USER=${CHROME_USER}
+      - PASSWORD=${CHROME_PASSWORD}
+      # --remote-debugging-port=9222        开启 CDP 调试端口
+      # --remote-debugging-address=0.0.0.0  允许容器外访问
+      # --remote-allow-origins=*            允许任意来源的 CDP 连接
+      # --disable-blink-features=AutomationControlled  隐藏自动化标志
+      - CHROME_CLI=--remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 --remote-allow-origins=* --disable-blink-features=AutomationControlled --lang=zh-CN
+    volumes:
+      # Chrome 用户数据目录，登录态持久化
+      - ./chrome-profile:/config
+      # 99-cdp-relay.sh 将 0.0.0.0:9223 中继到 127.0.0.1:9222
+      - ./chrome-init.d:/custom-cont-init.d:ro
+    ports:
+      # CDP 中继端口，openclaw 通过宿主机 IP 连接
+      - "9223:9223"
+      # Web UI HTTP（会重定向到 HTTPS）
+      - "3000:3000"
+      # Web UI HTTPS，使用自签名证书
+      - "3001:3001"
