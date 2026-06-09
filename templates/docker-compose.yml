@@ -19,7 +19,7 @@ services:
     networks:
       - openclaw-${INSTANCE_NAME}-net
     command:
-      ["node", "dist/index.js", "gateway", "--bind", "lan", "--port", "18789"]
+      ["node", "dist/index.js", "gateway", "--bind", "lan", "--port", "18789", "--verbose", "--ws-log", "compact"]
     healthcheck:
       test:
         - CMD
