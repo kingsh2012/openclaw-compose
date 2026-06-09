@@ -5,7 +5,9 @@ set -e
 
 DEPLOY_DIR="$(cd "$(dirname "$0")" && pwd)"
 DATA_DIR="$DEPLOY_DIR/data"
-CONFIG_SRC="$DEPLOY_DIR/openclaw.json.example"
+COMPOSE_TPL="$DEPLOY_DIR/templates/docker-compose.yml"
+COMPOSE_OUT="$DEPLOY_DIR/docker-compose.yml"
+CONFIG_SRC="$DEPLOY_DIR/templates/openclaw.json"
 CONFIG_DST="$DATA_DIR/openclaw.json"
 ENV_FILE="$DEPLOY_DIR/.env"
 LOCK_FILE="$DEPLOY_DIR/.init.lock"
@@ -29,15 +31,24 @@ set -a
 source "$ENV_FILE"
 set +a
 
+# 检查必填变量
+if [ -z "$INSTANCE_NAME" ] || [ -z "$INSTANCE_PORT" ]; then
+  echo "错误：.env 中必须设置 INSTANCE_NAME 和 INSTANCE_PORT"
+  exit 1
+fi
+
 # 检查并安装 setfacl
 if ! command -v setfacl &>/dev/null; then
   echo "安装 acl..."
   apt-get install -y acl
 fi
 
+# 从模板生成 docker-compose.yml
+envsubst < "$COMPOSE_TPL" > "$COMPOSE_OUT"
+echo "docker-compose.yml 已生成（实例: $INSTANCE_NAME, 端口: $INSTANCE_PORT）"
+
 # 创建数据目录并设置权限
 mkdir -p "$DATA_DIR"
-mkdir -p "$DATA_DIR/chrome-profile"
 chown -R 1000:1000 "$DATA_DIR"
 setfacl -R -m u:1000:rwx "$DATA_DIR"
 setfacl -d -m u:1000:rwx "$DATA_DIR"
@@ -55,21 +66,21 @@ echo "Gateway token 已生成并写入配置"
 
 # 启动容器
 echo ""
-docker compose -f "$DEPLOY_DIR/docker-compose.yml" up -d
+docker compose -f "$COMPOSE_OUT" up -d
 echo "容器已启动，等待就绪..."
 sleep 15
 
 # 安装飞书插件
 echo "安装飞书插件..."
-docker compose -f "$DEPLOY_DIR/docker-compose.yml" exec openclaw-gateway node dist/index.js plugins install @openclaw/feishu@2026.6.1
+docker compose -f "$COMPOSE_OUT" exec "openclaw-${INSTANCE_NAME}" node dist/index.js plugins install @openclaw/feishu@2026.6.1
 echo "飞书插件安装完成"
 
 # 重启使插件生效
-docker compose -f "$DEPLOY_DIR/docker-compose.yml" restart
+docker compose -f "$COMPOSE_OUT" restart
 echo "容器已重启，插件生效"
 
 # 写入 lock
 touch "$LOCK_FILE"
 
 echo ""
-echo "初始化完成！"
+echo "初始化完成！实例: $INSTANCE_NAME，端口: $INSTANCE_PORT"

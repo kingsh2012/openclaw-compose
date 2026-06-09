@@ -1,3 +1,4 @@
 .env
 .init.lock
 data/
+docker-compose.yml

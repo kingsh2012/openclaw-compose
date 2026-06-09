@@ -3,23 +3,27 @@
 ## 目录结构
 
 ```
-openclaw/                    # 部署目录，整个 copy 到服务器
-├── docker-compose.yml       # 启动配置
-├── openclaw.json.example    # 配置模板（变量由 .env 注入，勿直接修改）
+openclaw/                    # 单个实例目录（复制此目录部署新实例）
+├── templates/               # 配置模板（由 init.sh 读取，勿直接修改）
+│   ├── docker-compose.yml   # Compose 模板（生成根目录的 docker-compose.yml）
+│   └── openclaw.json        # 配置模板（生成 data/openclaw.json）
+├── chrome/                  # Chrome 独立服务（所有实例共用，按需启动）
+│   ├── docker-compose.yml
+│   ├── .env.example         # CHROME_USER / CHROME_PASSWORD
+│   └── chrome-init.d/
+│       └── 99-cdp-relay.sh  # CDP 端口中继（0.0.0.0:9223 → 127.0.0.1:9222）
 ├── .env.example             # 环境变量模板（复制为 .env 后填写真实值）
-├── chrome-init.d/           # Chrome 容器自定义初始化脚本
-│   └── 99-cdp-relay.sh      # CDP 端口中继（0.0.0.0:9223 → 127.0.0.1:9222）
 ├── init.sh                  # 初始化脚本（首次部署用，含防重复 lock）
 ├── test_model.sh            # 测试 API 连通性
 └── README.md
 ```
 
-数据目录（自动创建）：
+生成文件（不入库）：
 ```
 openclaw/
+├── docker-compose.yml       # 由 init.sh 从 templates/ 生成
 └── data/
-    ├── openclaw.json        # 运行时配置（由 init.sh 生成）
-    └── chrome-profile/      # Chrome 用户数据，登录态持久化于此
+    └── openclaw.json        # 由 init.sh 从 templates/ 生成
 ```
 
 ---
@@ -30,8 +34,10 @@ openclaw/
 
 ```bash
 cp .env.example .env
-# 编辑 .env，填写 API Key、飞书凭据、Chrome 账号密码等
+# 编辑 .env，填写 INSTANCE_NAME、INSTANCE_PORT、API Key、飞书凭据等
 ```
+
+`INSTANCE_NAME` 用于区分实例（同一台服务器上唯一），`INSTANCE_PORT` 为对外暴露端口。
 
 ### 第二步：初始化
 
@@ -39,25 +45,64 @@ cp .env.example .env
 bash init.sh
 ```
 
-脚本会自动加载 `.env`、生成配置、启动容器并安装飞书插件。一次性完成，重复执行会被 lock 拦截。
+脚本会自动：从模板生成 `docker-compose.yml` 和配置文件、启动容器、安装飞书插件。一次性完成，重复执行会被 lock 拦截。
+
+---
+
+## 多实例部署
+
+同一台服务器部署多个 OpenClaw 实例（对应不同飞书机器人）：
+
+```bash
+# 复制目录
+cp -r openclaw instance-a
+cp -r openclaw instance-b
+
+# 分别填写 .env，设置不同的 INSTANCE_NAME 和 INSTANCE_PORT
+# instance-a/.env：INSTANCE_NAME=a, INSTANCE_PORT=18789
+# instance-b/.env：INSTANCE_NAME=b, INSTANCE_PORT=18790
+
+# 分别初始化
+cd instance-a && bash init.sh
+cd ../instance-b && bash init.sh
+```
+
+各实例拥有独立容器名、网络、数据目录，互不干扰。
 
 ---
 
 ## Chrome 可视化界面
 
-系统内置一个带图形界面的 Chrome 浏览器，用于手动扫码登录（大众点评、美团等需要登录的网站）。
+Chrome 作为独立服务部署，可被所有 OpenClaw 实例共用（CDP 不支持并发，同一时间只能一个实例使用）。
+
+### 启动 Chrome
+
+```bash
+cd chrome
+cp .env.example .env
+# 编辑 .env，修改 CHROME_USER 和 CHROME_PASSWORD
+docker compose up -d
+```
 
 **访问地址：** `https://服务器IP:3001`
 
-- 用户名：`.env` 中的 `CHROME_USER`（默认 `admin`）
-- 密码：`.env` 中的 `CHROME_PASSWORD`
 - 首次访问浏览器会提示证书不受信任（自签名），点击「继续访问」即可
 
-**登录流程：**
+### 配置 openclaw 连接 Chrome
+
+在实例的 `.env` 中填写 Chrome 所在宿主机 IP：
+
+```
+CHROME_CDP_URL=http://服务器IP:9223
+```
+
+然后重新初始化，或直接修改 `data/openclaw.json` 中的 `browser.cdpUrl` 并重启容器。
+
+### 登录流程
 
 1. 打开 `https://服务器IP:3001`，进入 Chrome 界面
 2. 访问目标网站（如大众点评），完成扫码登录
-3. 关闭界面即可，session 已自动保存到 `./data/chrome-profile`
+3. 关闭界面即可，session 已自动保存
 4. 之后 OpenClaw 发起浏览器请求时会复用该登录态
 
 > 登录态在容器重启后依然保留，无需重复登录。
@@ -82,7 +127,7 @@ bash init.sh
 4. 保存后执行：
    ```bash
    chmod 666 ./data/openclaw.json
-   docker compose restart openclaw-gateway
+   docker compose restart
    ```
 
 多个群逗号分隔：`["oc_aaa", "oc_bbb"]`
@@ -115,14 +160,14 @@ bash init.sh
 
 2. 管理员在服务器执行授权：
    ```bash
-   docker compose exec openclaw-gateway node dist/index.js pairing approve feishu XXXXXXXX
+   docker compose exec openclaw-${INSTANCE_NAME} node dist/index.js pairing approve feishu XXXXXXXX
    ```
 
 3. 用户再次发消息即可正常使用，一次授权永久生效。
 
 **查看待审批列表：**
 ```bash
-docker compose exec openclaw-gateway node dist/index.js pairing list --channel feishu
+docker compose exec openclaw-${INSTANCE_NAME} node dist/index.js pairing list --channel feishu
 ```
 
 ---
@@ -263,6 +308,8 @@ cp ./data/openclaw.json ./openclaw.json.bak
 ## 注意事项
 
 - `.env` 和 `data/openclaw.json` 含 API Key 等敏感信息，不要提交 git
+- `docker-compose.yml` 由 init.sh 生成，不入库，不要手动修改（修改模板 `templates/docker-compose.yml`）
 - 编辑 `data/openclaw.json` 后需执行 `chmod 666 ./data/openclaw.json`，再重启容器
-- 重新初始化时先删除 `.init.lock`，再运行 `bash init.sh`
+- 重新初始化时先删除 `.init.lock` 和 `data/`，再运行 `bash init.sh`
 - openclaw 只读取 `openclaw.json`，不使用环境变量
+- 升级版本时 gateway 镜像和飞书插件必须保持同一版本号

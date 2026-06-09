@@ -168,6 +168,6 @@
   },
   "browser": {
     "enabled": true,
-    "cdpUrl": "http://172.28.0.10:9223"
+    "cdpUrl": "${CHROME_CDP_URL}"
   }
 }
