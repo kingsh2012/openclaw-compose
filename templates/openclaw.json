@@ -67,6 +67,9 @@
   },
   "tools": {
     "profile": "coding",
+    "alsoAllow": [
+      "browser"
+    ],
     "web": {
       "search": {
         "provider": "duckduckgo",
