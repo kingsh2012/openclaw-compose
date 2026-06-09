@@ -2,7 +2,7 @@ services:
   openclaw-${INSTANCE_NAME}:
     container_name: openclaw-${INSTANCE_NAME}
     # 升级时同步更新 init.sh 中的飞书插件版本，保持两者一致
-    image: alpine/openclaw:latest
+    image: ghcr.io/openclaw/openclaw:2026.6.1
     environment:
       HOME: /home/node
       # 禁用 mDNS/Bonjour 局域网广播，服务器环境不需要
