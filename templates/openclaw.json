@@ -174,5 +174,10 @@
   "browser": {
     "enabled": true,
     "cdpUrl": "${CHROME_CDP_URL}"
+  },
+  "skills": {
+    "workshop": {
+      "approvalPolicy": "auto"
+    }
   }
 }
