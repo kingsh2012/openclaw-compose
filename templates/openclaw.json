@@ -141,6 +141,10 @@
   "models": {
     "mode": "merge",
     "providers": {
+      "openai": {
+        "baseUrl": "${IMAGE_API_URL}",
+        "apiKey": "${IMAGE_API_KEY}"
+      },
       "custom-gpt": {
         "baseUrl": "${GPT_API_URL}",
         "api": "openai-completions",

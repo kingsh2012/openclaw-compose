@@ -8,6 +8,9 @@ services:
       # 禁用 mDNS/Bonjour 局域网广播，服务器环境不需要
       OPENCLAW_DISABLE_BONJOUR: "1"
       TZ: Asia/Shanghai
+      # openai-image-gen skill 用的生图专用 API
+      OPENAI_API_KEY: ${IMAGE_API_KEY}
+      OPENAI_BASE_URL: ${IMAGE_API_URL}
     volumes:
       # 配置目录挂载，openclaw.json 及运行时数据存放于此
       - ./data:/home/node/.openclaw

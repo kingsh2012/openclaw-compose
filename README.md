@@ -281,6 +281,52 @@ docker compose exec openclaw-${INSTANCE_NAME} node dist/index.js pairing list --
 
 ---
 
+## Skills / 图片生成
+
+OpenClaw 里能生成图片有两条路，**用途不同，配置也不同**：
+
+### 1. 内置 `image_generate` 工具（推荐，飞书默认走这条）
+
+- **是什么**：openclaw 自带的工具，模型对话中直接调用，**异步执行**——调用后立刻返回"任务已启动"，图片生成好后会作为附件自动发到聊天里。
+- **安装**：无需安装，内置自带，只要 `models.providers.openai` 里配置了可用的 API 即可。
+- **配置**：在 `data/openclaw.json`（对应 `templates/openclaw.json`）中配置：
+  ```json
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "openai": {
+        "baseUrl": "https://你的代理地址/v1",
+        "apiKey": "sk-xxxxxxxx"
+      }
+    }
+  }
+  ```
+  > ⚠️ **必须显式配置 `baseUrl`**。该插件会读取 `OPENAI_API_KEY` 环境变量，但**不会**读取 `OPENAI_BASE_URL` 环境变量——不配 `baseUrl` 会默认打到官方 `api.openai.com`，导致代理 key 被判定为 401 无效。
+- **"生成中，请稍候…"提示词**：✅ **需要**。因为是异步工具，模型那一轮如果只调用工具、不输出任何文字，飞书会自动追加一句兜底消息 `This reply completed without visible content...`（openclaw 框架硬编码，无配置可关）。已在 `data/workspace/AGENTS.md` 里加了说明，要求模型调用该工具的同一轮先回复"图片生成中，请稍候…"。
+
+### 2. `openai-image-gen` skill（可选，批量出图用）
+
+- **是什么**：一个 Python 脚本（`scripts/gen.py`），一次性批量生成多张图（默认 8 张随机 prompt），输出到本地目录 + `index.html` 画廊，**同步执行**，不会自动发到聊天。
+- **安装**：
+  ```bash
+  openclaw skills install openai-image-gen
+  ```
+- **配置**：仅需环境变量（在 `templates/docker-compose.yml` 的 `environment` 中）：
+  ```yaml
+  environment:
+    OPENAI_API_KEY: ${IMAGE_API_KEY}
+    OPENAI_BASE_URL: ${IMAGE_API_URL}
+  ```
+  脚本通过 `os.environ` 直接读取，`OPENAI_BASE_URL` 在这里**有效**。默认模型见 `gen.py` 的 `--model`（当前为 `gpt-image-2`，超时 280s）。
+- **"生成中，请稍候…"提示词**：❌ **不需要**。脚本同步执行、有明确返回值，不走异步事件流，不会触发该兜底消息；但模型若想把生成的图发到聊天，需要自己再读取文件并附加发送。
+
+### 一句话总结
+
+- 飞书聊天里"帮我生成一张图" → 走内置 `image_generate`，关键是 `models.providers.openai.baseUrl` 必须显式配置。
+- 想批量出图本地看画廊 → 装 `openai-image-gen` skill，靠环境变量即可，不装也不影响内置工具。
+
+---
+
 ## 常用命令
 
 ```bash
@@ -311,5 +357,5 @@ cp ./data/openclaw.json ./openclaw.json.bak
 - `docker-compose.yml` 由 init.sh 生成，不入库，不要手动修改（修改模板 `templates/docker-compose.yml`）
 - 编辑 `data/openclaw.json` 后需执行 `chmod 666 ./data/openclaw.json`，再重启容器
 - 重新初始化时先删除 `.init.lock` 和 `data/`，再运行 `bash init.sh`
-- openclaw 只读取 `openclaw.json`，不使用环境变量
+- openclaw 配置以 `openclaw.json` 为主，但部分插件（如 `openai` provider 的 `apiKey`）会读取环境变量；`baseUrl` 等则只认 `openclaw.json`，详见上方「Skills / 图片生成」一节
 - 升级版本时 gateway 镜像和飞书插件必须保持同一版本号
