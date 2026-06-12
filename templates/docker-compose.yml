@@ -34,5 +34,25 @@ services:
       retries: 5
       start_period: 20s
 
+  openclaw-${INSTANCE_NAME}-scheduler:
+    container_name: openclaw-${INSTANCE_NAME}-scheduler
+    build:
+      context: ./scheduler
+    environment:
+      TZ: Asia/Shanghai
+      PYTHONPATH: /home/node/.openclaw/workspace/deps/python
+      PYTHONPYCACHEPREFIX: /home/node/.openclaw/workspace/cache/pycache
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      # 与 openclaw-${INSTANCE_NAME} 共享同一份 workspace，crontab/jobs/logs 都在这里
+      - ./data:/home/node/.openclaw
+    # 与 openclaw-${INSTANCE_NAME} 容器内的 node 用户 (uid 1000) 保持一致，
+    # 避免写入 workspace 的日志/缓存文件变成 root 所有
+    user: "1000:1000"
+    init: true
+    restart: unless-stopped
+    networks:
+      - openclaw-${INSTANCE_NAME}-net
+
 networks:
   openclaw-${INSTANCE_NAME}-net:
