@@ -64,6 +64,20 @@ TOKEN=$(openssl rand -hex 32)
 sed -i "s/\"token\": \"[^\"]*\"/\"token\": \"$TOKEN\"/g" "$CONFIG_DST"
 echo "Gateway token 已生成并写入配置"
 
+# 同步自定义 skills（仓库 custom-skills/ → data/workspace/skills/）
+CUSTOM_SKILLS_DIR="$DEPLOY_DIR/custom-skills"
+WORKSPACE_SKILLS_DIR="$DATA_DIR/workspace/skills"
+if [ -d "$CUSTOM_SKILLS_DIR" ] && [ -n "$(ls -A "$CUSTOM_SKILLS_DIR" 2>/dev/null)" ]; then
+  mkdir -p "$WORKSPACE_SKILLS_DIR"
+  for skill_dir in "$CUSTOM_SKILLS_DIR"/*/; do
+    name="$(basename "$skill_dir")"
+    rm -rf "$WORKSPACE_SKILLS_DIR/$name"
+    cp -r "$skill_dir" "$WORKSPACE_SKILLS_DIR/$name"
+  done
+  chown -R 1000:1000 "$WORKSPACE_SKILLS_DIR"
+  echo "自定义 skills 已同步：$(ls "$CUSTOM_SKILLS_DIR")"
+fi
+
 # 启动容器
 echo ""
 docker compose -f "$COMPOSE_OUT" up -d

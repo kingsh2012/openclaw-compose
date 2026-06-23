@@ -6,6 +6,7 @@
 set -e
 
 DEPLOY_DIR="$(cd "$(dirname "$0")" && pwd)"
+DATA_DIR="$DEPLOY_DIR/data"
 COMPOSE_TPL="$DEPLOY_DIR/templates/docker-compose.yml"
 COMPOSE_OUT="$DEPLOY_DIR/docker-compose.yml"
 ENV_FILE="$DEPLOY_DIR/.env"
@@ -35,6 +36,20 @@ fi
 # 从模板重新生成 docker-compose.yml
 envsubst < "$COMPOSE_TPL" > "$COMPOSE_OUT"
 echo "docker-compose.yml 已更新（实例: $INSTANCE_NAME, 端口: $INSTANCE_PORT）"
+
+# 同步自定义 skills（仓库 custom-skills/ → data/workspace/skills/）
+CUSTOM_SKILLS_DIR="$DEPLOY_DIR/custom-skills"
+WORKSPACE_SKILLS_DIR="$DATA_DIR/workspace/skills"
+if [ -d "$CUSTOM_SKILLS_DIR" ] && [ -n "$(ls -A "$CUSTOM_SKILLS_DIR" 2>/dev/null)" ]; then
+  mkdir -p "$WORKSPACE_SKILLS_DIR"
+  for skill_dir in "$CUSTOM_SKILLS_DIR"/*/; do
+    name="$(basename "$skill_dir")"
+    rm -rf "$WORKSPACE_SKILLS_DIR/$name"
+    cp -r "$skill_dir" "$WORKSPACE_SKILLS_DIR/$name"
+  done
+  chown -R 1000:1000 "$WORKSPACE_SKILLS_DIR"
+  echo "自定义 skills 已同步：$(ls "$CUSTOM_SKILLS_DIR")"
+fi
 
 # 应用变更（新增/修改的服务会被构建并启动）
 echo ""
