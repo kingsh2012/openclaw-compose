@@ -55,15 +55,19 @@ tools/device_dot/status_sync/
 推荐结构：
 skills/<skill-name>/SKILL.md
 
-业务自定义 skill 建议加业务前缀，避免和 OpenClaw 内置 skill 混淆。例如：
-skills/linkfog-cmdb-compose-release/
-skills/linkfog-qiniu-openclaw-upload/
-skills/linkfog-offboarding-access-disable/
+自定义 skill 必须加前缀，避免和 OpenClaw 内置 skill 混淆，前缀按归属分两类：
+- 公司业务相关 → `linkfog-` 前缀。例如：
+  skills/linkfog-cmdb-compose-release/
+  skills/linkfog-offboarding-access-disable/
+- 个人通用、跟公司业务无关 → `kingsh2012-` 前缀。例如：
+  skills/kingsh2012-qiniu-cdn-upload/
+  skills/kingsh2012-feishu-file-send/
 
 规则：
 - skill 只写流程、约束、环境说明、非敏感路径。
 - 不写密码、AK/SK、token、完整 DSN、内部安全策略明文。
 - 如果 skill 需要凭据，只写“凭据位于 .secrets/<project>.json 的某个 section”，不要展开内容。
+- 新建 skill 前先判断归属，选对前缀；不确定时倾向 `kingsh2012-`（个人通用），不要不带前缀。
 
 3. outputs/：生成结果
 
@@ -151,18 +155,25 @@ deps/bin/
 推荐结构：
 .secrets/<project-or-service>.json
 
+如果凭据是某个 skill 专用的，文件名直接用 skill 名（一个 skill 对应一个凭据文件），方便对应：
+.secrets/<skill-name>.json
+
 示例：
 .secrets/cmdb.json
-.secrets/qiniu.json
 .secrets/grafana.json
 .secrets/pan123_api_scheduler.json
 .secrets/ops_hosts.json
+.secrets/kingsh2012-qiniu-cdn-upload.json
 
 规则：
 - 默认用 JSON。
 - 推荐一个项目/服务一个 JSON 文件，里面按 section 分组。
 - 不要拆成很多单值 txt 文件。
 - 不把真实凭据写进 tools/、skills/、outputs/、memory/、README 或聊天。
+- 目录权限 700，文件权限 600。
+- skill/工具依赖的凭据文件缺失或字段不全时，**不要直接报错崩溃**：明确列出缺哪些字段，告知
+  用户通过聊天提供，你（agent）拿到值后自己创建/补全该文件，再重试。不要把凭据内容回显到
+  聊天里确认，只确认字段是否齐全。
 - 非敏感模板放 config.example.json，真实配置放 .secrets/。
 - .secrets 目录权限建议 700，里面的 JSON 文件权限建议 600。
 

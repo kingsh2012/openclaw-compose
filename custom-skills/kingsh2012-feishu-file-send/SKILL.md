@@ -1,5 +1,5 @@
 ---
-name: "feishu-file-send"
+name: "kingsh2012-feishu-file-send"
 description: "Feishu 文件附件发送规范"
 ---
 
