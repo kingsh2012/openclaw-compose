@@ -1,25 +1,23 @@
-请按下面内容，在你自己的 workspace 里建立/更新一条工具行为备忘，规则见你 workspace 根目录的
-`WORKSPACE_DESIGN.md` 第 8 项（`tool-notes/`）。
+请处理一个内置工具的行为坑，分两部分：一部分写进 AGENTS.md（让规则真正生效），一部分记进
+memory/（留下踩坑的来龙去脉）。
 
-一、在 `tool-notes/image_generate.md` 写入（如果文件已存在，合并更新，不要整篇覆盖）：
+一、检查 `AGENTS.md` 里是否已经有"调用 image_generate 前先回复提示语"这条规则：
 
-```markdown
-# image_generate 工具行为备忘
+- 规则内容：调用 `image_generate` 工具的同一轮，必须先输出一句文字提示（例如"图片生成中，
+  请稍候…"），再调用工具。
+- 原因：`image_generate` 是异步工具，调用后立刻返回"任务已启动"，图片生成好后才会作为附件
+  自动发到聊天里。如果那一轮只调用了工具、没有输出任何文字，飞书会自动追加一句兜底消息
+  「This reply completed without visible content...」（openclaw 框架硬编码，没有配置项可以
+  关掉），先输出提示语可以避免触发这条兜底消息。
+- 如果 AGENTS.md 里没有这条规则，补一条进去；如果已经有类似规则，不用重复加，确认表述清楚
+  即可。
 
-- 工具类型：框架内置工具，模型对话中直接调用，**异步执行**——调用后立刻返回"任务已启动"，
-  图片生成好后会作为附件自动发到聊天里。
-- 已知坑：因为是异步工具，如果模型那一轮只调用了这个工具、没有输出任何文字，飞书会自动追加
-  一句兜底消息「This reply completed without visible content...」（openclaw 框架硬编码，
-  没有配置项可以关掉）。
-- 必须遵守的规则：调用 image_generate 工具的同一轮，必须先输出一句文字提示（例如"图片生成中，
-  请稍候…"），再调用工具，避免触发上面那条兜底消息。
-- 记录时间：2026-06-23。
-```
+二、在 memory/ 里记一条踩坑记录（按你自己 memory/ 的记录方式，比如当天的日志文件），内容包括：
 
-二、检查 `AGENTS.md` 里是否已经有"调用 image_generate 前先回复提示语"这条规则：
-- 如果没有，补一条进去（这条规则必须放 AGENTS.md，因为 AGENTS.md 才是每轮都会读取生效的地方，
-  `tool-notes/` 只是档案库，不会自动生效）。
-- 如果已经有类似规则，不用重复加，确认表述清楚即可。
+- 发现时间：2026-06-24
+- 现象：用内置 image_generate 生图时，模型如果不先说话直接调工具，飞书会跳出兜底消息
+  「This reply completed without visible content...」
+- 原因：image_generate 异步执行，框架硬编码逻辑
+- 应对：已在 AGENTS.md 里加了规则，要求调用前先输出提示语（见上面第一步）
 
-三、改完之后回复一句确认：`tool-notes/image_generate.md` 和 `AGENTS.md` 各自的当前状态
-（新建/已存在/已更新），方便核对。
+三、改完之后回复一句确认：AGENTS.md 和 memory/ 各自的当前状态（新建/已存在/已更新）。

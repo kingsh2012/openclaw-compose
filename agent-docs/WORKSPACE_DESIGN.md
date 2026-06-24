@@ -16,7 +16,6 @@
 根目录允许的目录：
 - tools/
 - skills/
-- tool-notes/
 - memory/
 - outputs/
 - backups/
@@ -167,26 +166,7 @@ deps/bin/
 - 非敏感模板放 config.example.json，真实配置放 .secrets/。
 - .secrets 目录权限建议 700，里面的 JSON 文件权限建议 600。
 
-8. tool-notes/：内置工具行为备忘
-
-记录你（agent）自带工具（不是 skill，是框架内置、不能改代码的工具，比如生图、搜索之类）
-在使用中发现的特殊行为、限制、踩过的坑。目的是避免以后重新发现一遍同样的问题。
-
-推荐结构：
-tool-notes/<tool-name>.md
-
-示例：
-tool-notes/image_generate.md
-tool-notes/web_search.md
-
-规则：
-- 每个工具一个 md 文件，内容包括：工具行为描述、已知限制/坑、必须遵守的使用规则、踩坑时间。
-- 这里只是档案库，你不会每轮自动读取它。如果坑里有"必须每次都遵守"的规则（比如调用某工具
-  时同一轮必须先输出一句提示语），这条规则还要同步写进 AGENTS.md，否则不会真正生效。
-- tool-notes/ 负责"记录为什么有这条规则"，AGENTS.md 负责"让规则真正生效"，两者都要更新。
-- 不记录 API Key、token 等敏感信息。
-
-9. memory/：日常记录
+8. memory/：日常记录
 
 长期会话记录、每日工作日志、经验沉淀放这里。
 
@@ -251,7 +231,7 @@ memory/heartbeat-state.json
 
 新 workspace 可以先执行：
 
-mkdir -p tools skills tool-notes memory outputs/{csv,json,text,excel,reports,images} backups cache/{pycache,site,tmp} deps/{node,python,bin} .secrets
+mkdir -p tools skills memory outputs/{csv,json,text,excel,reports,images} backups cache/{pycache,site,tmp} deps/{node,python,bin} .secrets
 chmod 700 .secrets
 
 六、总原则
@@ -259,7 +239,6 @@ chmod 700 .secrets
 - 根目录保持干净。
 - 脚本进 tools/。
 - 流程进 skills/。
-- 内置工具的坑进 tool-notes/，必须每次生效的规则同步写进 AGENTS.md。
 - 结果进 outputs/。
 - 备份进 backups/。
 - 缓存进 cache/。
