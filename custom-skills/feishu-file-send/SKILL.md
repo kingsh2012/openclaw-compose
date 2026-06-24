@@ -68,7 +68,7 @@ openclaw gateway restart
 {
   "accountId": "default",
   "action": "send",
-  "target": "user:ou_dbdb0e2846f2423342a2e1442d8c2a83",
+  "target": "user:<open_id>",
   "message": "📦 这是 Excel 附件，请下载使用",
   "media": "/home/node/.openclaw/workspace/report.xlsx",
   "filename": "report.xlsx",
@@ -83,7 +83,7 @@ openclaw gateway restart
 {
   "accountId": "default",
   "action": "send",
-  "target": "chat:oc_6d557988e634c5ab99a685e63ca2782d",
+  "target": "chat:<chat_id>",
   "message": "📦 这是 Excel 附件，请下载使用",
   "media": "/home/node/.openclaw/workspace/report.xlsx",
   "filename": "report.xlsx",
