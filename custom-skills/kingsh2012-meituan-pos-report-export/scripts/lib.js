@@ -1,4 +1,6 @@
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
 
 const workspace = path.resolve(__dirname, '../../..');
 process.env.NODE_PATH = [
@@ -9,7 +11,24 @@ require('module').Module._initPaths();
 
 const puppeteer = require('puppeteer-core');
 
-const CDP_URL = process.env.MEITUAN_CDP_URL || 'http://127.0.0.1:9223';
+function readOpenClawCdpUrl() {
+  const configPath =
+    process.env.MEITUAN_OPENCLAW_CONFIG ||
+    process.env.OPENCLAW_CONFIG ||
+    path.join(os.homedir(), '.openclaw', 'openclaw.json');
+
+  try {
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    const browser = config.browser || {};
+    const profileName = browser.defaultProfile || 'remote';
+    const profiles = browser.profiles || {};
+    return profiles[profileName]?.cdpUrl || profiles.remote?.cdpUrl || undefined;
+  } catch (_) {
+    return undefined;
+  }
+}
+
+const CDP_URL = process.env.MEITUAN_CDP_URL || readOpenClawCdpUrl() || 'http://127.0.0.1:9223';
 const CHROME_CONTAINER = process.env.MEITUAN_CHROME_CONTAINER || 'openclaw-chrome';
 
 async function withBrowser(fn) {
