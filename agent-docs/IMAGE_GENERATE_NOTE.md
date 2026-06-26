@@ -12,6 +12,7 @@
    - **两者都有**：配置满足，内置 `image_generate` 工具可正常使用，无需修改。
 
    - **缺少 `baseUrl` 或 `apiKey`（或整个 `openai` 节点不存在）**：
+
      - 尝试从已有 provider 配置中补全：
        - 如果 `custom-gpt` 或其他 openai-compatible provider 已配置了 `baseUrl`/`apiKey`，
          将其复制到 `models.providers.openai` 下。
@@ -31,16 +32,21 @@
 
 ---
 
-## 二、检查 AGENTS.md 里是否已有"调用 image_generate 前先回复提示语"的规则
+## 二、检查 AGENTS.md 里是否已有以下两条 image_generate 规则
 
+**规则 1：调用前先回复提示语**
 - 规则内容：调用 `image_generate` 工具的同一轮，必须先输出一句文字提示（例如"图片生成中，
   请稍候…"），再调用工具。
 - 原因：`image_generate` 是异步工具，调用后立刻返回"任务已启动"，图片生成好后才会作为附件
   自动发到聊天里。如果那一轮只调用了工具、没有输出任何文字，飞书会自动追加一句兜底消息
   「This reply completed without visible content...」（openclaw 框架硬编码，没有配置项可以
   关掉），先输出提示语可以避免触发这条兜底消息。
-- 如果 AGENTS.md 里没有这条规则，补一条进去；如果已经有类似规则，不用重复加，确认表述清楚
-  即可。
+
+**规则 2：调用时指定 `model: "gpt-image-2"`**
+- 规则内容：调用 `image_generate` 时，始终传入 `model: "gpt-image-2"` 参数（用户明确要求用其他模型除外）。
+- 原因：不指定 model 时，工具会使用 provider 默认模型，可能不支持生图或使用旧版模型。
+
+- 如果 AGENTS.md 里没有这两条规则，补进去；如果已经有类似规则，确认表述清楚即可，不重复加。
 
 ---
 
@@ -57,6 +63,7 @@
 ## 四、完成后回复确认
 
 说明以下各项当前状态（新建 / 已存在 / 已更新 / 已跳过）：
-- `models.providers.openai` 配置
-- AGENTS.md 规则
+- `models.providers.openai` 配置（`baseUrl` + `apiKey`）
+- AGENTS.md 规则：调用前先回复提示语
+- AGENTS.md 规则：调用时指定 `model: "gpt-image-2"`
 - memory/ 记录
