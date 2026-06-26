@@ -2,3 +2,4 @@
 .init.lock
 data/
 /docker-compose.yml
+deps/
