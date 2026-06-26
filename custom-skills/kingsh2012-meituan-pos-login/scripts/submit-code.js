@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // 第二步：填验证码并点击登录；如果出现"选择集团/门店"页且只有一个机构，自动选择。
 // 用法: node submit-code.js <验证码>
-const { withBrowser, findPosPage, findLoginFrame, sleep } = require('./lib');
+const fs = require('fs');
+const { withBrowser, newPage, findMeituanPage, waitForFrame, POS_URL, sleep } = require('./lib');
 
 const code = process.argv[2];
 if (!code) {
@@ -10,55 +11,65 @@ if (!code) {
 }
 
 withBrowser(async (browser) => {
-  const page = await findPosPage(browser);
-  const frame = await findLoginFrame(page);
-  if (!frame) throw new Error('未找到登录 iframe，可能验证码已过期需要重新 send-code.js');
+  // 优先复用 send-code.js 留下的标签页，找不到就重新导航
+  let page = findMeituanPage(browser);
+  if (!page) {
+    page = await newPage(browser, POS_URL);
+  }
 
-  const inputs = await frame.$$('input');
-  const codeHandle = inputs[2];
-  await codeHandle.click({ clickCount: 3 });
-  await codeHandle.type(code, { delay: 80 });
+  // 等登录 iframe
+  const frame = await waitForFrame(page, 'eepassport.meituan.com', 15000)
+    .catch(() => { throw new Error('未找到登录 iframe，可能验证码已过期，请重新跑 send-code.js'); });
+
+  await frame.waitForSelector('input:nth-of-type(3)', { timeout: 10000 });
+  await sleep(200);
+
+  // 填验证码（第 3 个 input）
+  await frame.click('input:nth-of-type(3)');
+  await frame.evaluate(() => document.querySelector('input:nth-of-type(3)')?.select());
+  await page.keyboard.type(code, { delay: 60 });
   await sleep(400);
 
+  // 确保协议已勾选
   await frame.evaluate(() => {
     const cb = document.querySelector('input.selectChecked');
-    if (cb && !cb.checked) {
-      const label = document.querySelector('label[for="checkbox"]');
-      if (label) label.click();
-    }
+    if (cb && !cb.checked) document.querySelector('label[for="checkbox"]')?.click();
   });
   await sleep(300);
 
-  await frame.evaluate(() => {
-    const btn = Array.from(document.querySelectorAll('button, div, span')).find(
-      (e) => e.children.length === 0 && e.textContent && e.textContent.trim() === '登录'
+  // 点"登录"
+  const clicked = await frame.evaluate(() => {
+    const btn = Array.from(document.querySelectorAll('button,div,span')).find(
+      e => e.children.length === 0 && e.textContent?.trim() === '登录'
     );
-    if (btn) btn.click();
-    else throw new Error('未找到登录按钮');
+    if (!btn) return false;
+    btn.click();
+    return true;
   });
+  if (!clicked) throw new Error('未找到登录按钮');
 
   await sleep(2500);
 
-  // 登录后可能进入"选择集团/门店"页：如果只有一个机构，自动点选择
+  // 若进入"选择集团/门店"页，自动点唯一的"选择"按钮
   if (page.url().includes('selectorg')) {
-    const orgFrame = page.frames().find((f) => f.url().includes('selectorg')) || page.mainFrame();
-    const orgCount = await orgFrame.evaluate(() =>
-      document.querySelectorAll('.content-list .ant-collapse, [class*="org-item"]').length
-    );
-    await orgFrame.evaluate(() => {
-      const all = Array.from(document.querySelectorAll('*'));
-      const btn = all.find(
-        (e) => e.children.length === 0 && e.textContent && e.textContent.replace(/\s/g, '') === '选择'
-      );
-      if (btn) btn.click();
-    });
+    for (const f of page.frames()) {
+      const ok = await f.evaluate(() => {
+        const btn = Array.from(document.querySelectorAll('*')).find(
+          e => e.children.length === 0 && e.textContent?.replace(/\s/g, '') === '选择'
+        );
+        if (!btn) return false;
+        btn.click();
+        return true;
+      }).catch(() => false);
+      if (ok) break;
+    }
     await sleep(2500);
   }
 
   const shotPath = process.argv[3] || '/tmp/meituan-login-result.png';
   await page.screenshot({ path: shotPath });
   console.log(JSON.stringify({ ok: true, url: page.url(), screenshot: shotPath }));
-}).catch((e) => {
+}).catch(e => {
   console.error('ERROR:', e.message);
   process.exit(1);
 });

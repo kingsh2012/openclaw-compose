@@ -48,6 +48,26 @@ cd deps/node && npm install puppeteer-core
   或者先 `node fetch-download.js` 不带参数看文件列表，再指定确切文件名。输出的 `localPath`
   在 workspace 的 `outputs/` 目录下，可以直接发给用户。
 
+## 日期设置机制
+
+日期控件是 `saas-picker-range`（基于 ant-design 的 React 受控组件），两个 input 都有 `readonly` 属性，直接改 `.value` 无效。
+
+**正确做法**：通过合成鼠标事件（`mousedown/mouseup/click`）操作日历面板，底层用 `chrome-remote-interface` 连接 CDP，按执行上下文 ID 切换到 iframe 里的 JS 环境。
+
+流程：
+1. 对 `.saas-picker` 容器派发合成事件，打开 `.saas-picker-dropdown`
+2. 点击 `td[title="YYYY-MM-DD"] .saas-picker-cell-inner` 选开始日期
+3. 点击 `.saas-picker-time-panel-column` 里的 `li` 设时间（`00:00:00`）
+4. 点 `.saas-picker-ok button` 确认，面板保持打开等待选结束日期
+5. 同样操作选结束日期，时间设为 `23:59:59`
+6. 再次点确认，面板关闭，查询自动触发
+
+独立工具脚本（可单独调用）：
+
+```bash
+node skills/kingsh2012-meituan-pos-report-export/scripts/set-date-range.js <开始日期> <结束日期>
+```
+
 ## 新增报表的套路
 
 新报表大概率也是"壳子页 + 嵌套 iframe"结构、筛选区（统计维度/日期/门店/卡类型）样式类似。新增
