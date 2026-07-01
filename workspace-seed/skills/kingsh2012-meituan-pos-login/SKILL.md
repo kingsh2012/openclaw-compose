@@ -13,7 +13,7 @@ description: "Log in to pos.meituan.com (美团管家) via SMS code through the 
 - 用户要看/导出美团管家的报表或数据，但当前不确定有没有登录态。
 - 用户明确说"重新登录美团"或验证码登录失败需要重试。
 
-**先检查再登录**：登录态落在 Chrome 容器的持久化 profile 里(`chrome-profile` 目录挂载),
+**先检查再登录**：登录态落在 Chrome 容器的持久化 profile 里(`services/chrome/chrome-profile` 目录挂载),
 容器不重置就不会丢，多数情况下不需要重新走验证码流程。
 
 ## 依赖（一次性）
