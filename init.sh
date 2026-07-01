@@ -69,8 +69,10 @@ SEED_DIR="$DEPLOY_DIR/workspace-seed"
 WORKSPACE_DIR="$DATA_DIR/workspace"
 mkdir -p "$WORKSPACE_DIR"
 
-# 根级规则/人设/参考文件：不存在才种入，避免覆盖 agent 已维护的内容
-for f in AGENTS.md SOUL.md TOOLS.md IDENTITY.md USER.md HEARTBEAT.md WORKSPACE_DESIGN.md IMAGE_GENERATE_NOTE.md; do
+# 根级规则/人设/参考/引导文件：不存在才种入，避免覆盖 agent 已维护的内容。
+# 身份类文件（IDENTITY.md/USER.md）只种空模板，具体身份靠首次对话填；
+# BOOTSTRAP.md 是静态通用引导，不预设任何身份。
+for f in AGENTS.md SOUL.md TOOLS.md IDENTITY.md USER.md HEARTBEAT.md WORKSPACE_DESIGN.md IMAGE_GENERATE_NOTE.md BOOTSTRAP.md; do
   if [ -f "$SEED_DIR/$f" ] && [ ! -f "$WORKSPACE_DIR/$f" ]; then
     cp "$SEED_DIR/$f" "$WORKSPACE_DIR/$f"
   fi
@@ -85,13 +87,6 @@ if [ -d "$SEED_DIR/skills" ]; then
     cp -r "$skill_dir" "$WORKSPACE_DIR/skills/$name"
   done
   echo "自定义 skills 已同步：$(ls "$SEED_DIR/skills")"
-fi
-
-# 每实例 BOOTSTRAP.md：从模板生成（openclaw 首启读后自删）
-if [ -f "$SEED_DIR/BOOTSTRAP.md.tpl" ] && [ ! -f "$WORKSPACE_DIR/BOOTSTRAP.md" ]; then
-  export INSTANCE_ROLE="${INSTANCE_ROLE:-通用个人助手}"
-  envsubst < "$SEED_DIR/BOOTSTRAP.md.tpl" > "$WORKSPACE_DIR/BOOTSTRAP.md"
-  echo "BOOTSTRAP.md 已生成（实例: $INSTANCE_NAME, 定位: $INSTANCE_ROLE）"
 fi
 
 chown -R 1000:1000 "$WORKSPACE_DIR"

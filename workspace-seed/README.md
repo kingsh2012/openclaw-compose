@@ -12,20 +12,21 @@
 |---|---|---|
 | `AGENTS.md` | 运行铁律 + 完整工作区规范（内联，每轮生效） | openclaw **每轮**注入上下文 |
 | `SOUL.md` | 性格底子 | 每轮注入 |
-| `IDENTITY.md` / `USER.md` | 身份 / 服务对象模板（首启由 agent 按业务填） | 每轮注入 |
+| `IDENTITY.md` / `USER.md` | 身份 / 服务对象**空模板**（不预设，靠首次对话填） | 每轮注入 |
 | `TOOLS.md` | 环境相关的本地备注模板 | 按需 |
 | `HEARTBEAT.md` | 心跳清单（默认空） | 心跳时 |
 | `WORKSPACE_DESIGN.md` | workspace 迁移/整理**操作指南**（规则在 AGENTS.md，这里是动手步骤） | agent 按需读 |
 | `IMAGE_GENERATE_NOTE.md` | 生图工具的坑与规则说明 | agent 按需读 |
 | `skills/` | 自定义技能（每个 `<prefix>-<name>/SKILL.md`） | agent 按需调用 |
-| `BOOTSTRAP.md.tpl` | **每实例差异**模板，由 `.env` 生成 `BOOTSTRAP.md` | 首启读一次后自删 |
+| `BOOTSTRAP.md` | 静态通用首启引导（不预设身份，引导 agent 用对话定身份后自删） | 首启读一次后自删 |
 
-## 共享 vs 每实例
+## 我们设定什么、不设定什么
 
-- **共享**（所有实例相同，改一次全同步）：`AGENTS.md`、`SOUL.md`、`TOOLS.md`、
-  `HEARTBEAT.md`、`WORKSPACE_DESIGN.md`、`IMAGE_GENERATE_NOTE.md`、`skills/`。
-- **每实例不同**：只有 `BOOTSTRAP.md`（从 `.env` 的 `INSTANCE_NAME` / `INSTANCE_ROLE` 生成），
-  首启时引导 agent 填 `IDENTITY.md` / `USER.md`。
+- **设定（种进 seed，全实例共享）**：规则（`AGENTS.md`）、目录规范
+  （`WORKSPACE_DESIGN.md`）、人设底子（`SOUL.md`）、技能（`skills/`）、参考文档。
+- **不预设（靠对话定，每实例独有）**：名字、性格、业务定位、服务对象。
+  `IDENTITY.md` / `USER.md` 只种空模板，`BOOTSTRAP.md` 引导 agent 在首次对话里
+  问清楚、写进这两个文件，然后删除自己。**没有 `INSTANCE_ROLE` 之类的预设项。**
 
 ## 同步规则（见 init.sh / update.sh）
 
