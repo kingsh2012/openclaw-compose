@@ -16,7 +16,6 @@
 | `TOOLS.md` | 环境相关的本地备注模板 | 按需 |
 | `HEARTBEAT.md` | 心跳清单（默认空） | 心跳时 |
 | `WORKSPACE_DESIGN.md` | workspace 迁移/整理**操作指南**（规则在 AGENTS.md，这里是动手步骤） | agent 按需读 |
-| `IMAGE_GENERATE_NOTE.md` | 生图工具的坑与规则说明 | agent 按需读 |
 | `skills/` | 自定义技能（每个 `<prefix>-<name>/SKILL.md`） | agent 按需调用 |
 | `BOOTSTRAP.md` | 静态通用首启引导（不预设身份，引导 agent 用对话定身份后自删） | 首启读一次后自删 |
 
@@ -30,9 +29,9 @@
 
 ## 同步规则（见 init.sh / update.sh）
 
-- **init.sh（首次）**：把 seed 整体种入空 workspace；从模板生成 `BOOTSTRAP.md`。
+- **init.sh（首次）**：把 seed 整体种入空 workspace（根文件不存在才种，含静态 `BOOTSTRAP.md`）。
 - **update.sh（更新）**：只同步"共享且非 agent 自维护"的部分——`skills/` 与参考文档
-  （`WORKSPACE_DESIGN.md`、`IMAGE_GENERATE_NOTE.md`），**不覆盖** agent 运行中自己维护的
+  （`WORKSPACE_DESIGN.md`），**不覆盖** agent 运行中自己维护的
   `AGENTS.md` / `IDENTITY.md` / `USER.md` / `MEMORY.md` / `memory/`，避免抹掉它长出来的记忆。
 
 ## 改东西的正确姿势

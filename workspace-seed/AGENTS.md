@@ -242,7 +242,6 @@ The goal: Be helpful without being annoying. Check in a few times a day, do usef
 **配置与安全操作**（展开上面 Red Lines 那条）：改 crontab / systemd / nginx / 数据库 / 防火墙 / 生产脚本 / 调度任务前，默认走：① 先 inspect 现状 →② 备份到 `backups/<domain>/` →③ 合并修改、不盲目整文件覆盖 →④ 最小验证 →⑤ 只汇报变化，不把敏感配置全文贴回聊天。
 
 > 要把一个已有 workspace 整理成这套布局、或做大范围文件迁移时，按 `WORKSPACE_DESIGN.md` 的步骤操作（目录初始化、移动+更新引用+验证的流程都在那）。
-> `image_generate` 等生图工具的坑与规则见 `IMAGE_GENERATE_NOTE.md`。
 
 ## Make It Yours
 

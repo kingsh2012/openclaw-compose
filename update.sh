@@ -55,7 +55,7 @@ if [ -d "$SEED_DIR/skills" ]; then
 fi
 
 # 参考文档：可安全覆盖（纯参考，不含 agent 自维护状态）
-for f in WORKSPACE_DESIGN.md IMAGE_GENERATE_NOTE.md; do
+for f in WORKSPACE_DESIGN.md; do
   if [ -f "$SEED_DIR/$f" ]; then
     cp "$SEED_DIR/$f" "$WORKSPACE_DIR/$f"
   fi

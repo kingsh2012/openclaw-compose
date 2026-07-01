@@ -72,7 +72,7 @@ mkdir -p "$WORKSPACE_DIR"
 # 根级规则/人设/参考/引导文件：不存在才种入，避免覆盖 agent 已维护的内容。
 # 身份类文件（IDENTITY.md/USER.md）只种空模板，具体身份靠首次对话填；
 # BOOTSTRAP.md 是静态通用引导，不预设任何身份。
-for f in AGENTS.md SOUL.md TOOLS.md IDENTITY.md USER.md HEARTBEAT.md WORKSPACE_DESIGN.md IMAGE_GENERATE_NOTE.md BOOTSTRAP.md; do
+for f in AGENTS.md SOUL.md TOOLS.md IDENTITY.md USER.md HEARTBEAT.md WORKSPACE_DESIGN.md BOOTSTRAP.md; do
   if [ -f "$SEED_DIR/$f" ] && [ ! -f "$WORKSPACE_DIR/$f" ]; then
     cp "$SEED_DIR/$f" "$WORKSPACE_DIR/$f"
   fi
