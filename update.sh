@@ -37,19 +37,32 @@ fi
 envsubst < "$COMPOSE_TPL" > "$COMPOSE_OUT"
 echo "docker-compose.yml 已更新（实例: $INSTANCE_NAME, 端口: $INSTANCE_PORT）"
 
-# 同步自定义 skills（仓库 custom-skills/ → data/workspace/skills/）
-CUSTOM_SKILLS_DIR="$DEPLOY_DIR/custom-skills"
-WORKSPACE_SKILLS_DIR="$DATA_DIR/workspace/skills"
-if [ -d "$CUSTOM_SKILLS_DIR" ] && [ -n "$(ls -A "$CUSTOM_SKILLS_DIR" 2>/dev/null)" ]; then
-  mkdir -p "$WORKSPACE_SKILLS_DIR"
-  for skill_dir in "$CUSTOM_SKILLS_DIR"/*/; do
+# 同步 seed 中"共享且非 agent 自维护"的部分：skills/ 和参考文档。
+# 刻意不覆盖 AGENTS.md / SOUL.md / IDENTITY.md / USER.md / TOOLS.md / HEARTBEAT.md /
+# MEMORY.md / memory/ —— 这些首启后由 agent 自己维护，覆盖会抹掉它长出来的记忆和定制。
+SEED_DIR="$DEPLOY_DIR/workspace-seed"
+WORKSPACE_DIR="$DATA_DIR/workspace"
+
+# 技能：整体覆盖同步
+if [ -d "$SEED_DIR/skills" ]; then
+  mkdir -p "$WORKSPACE_DIR/skills"
+  for skill_dir in "$SEED_DIR"/skills/*/; do
     name="$(basename "$skill_dir")"
-    rm -rf "$WORKSPACE_SKILLS_DIR/$name"
-    cp -r "$skill_dir" "$WORKSPACE_SKILLS_DIR/$name"
+    rm -rf "$WORKSPACE_DIR/skills/$name"
+    cp -r "$skill_dir" "$WORKSPACE_DIR/skills/$name"
   done
-  chown -R 1000:1000 "$WORKSPACE_SKILLS_DIR"
-  echo "自定义 skills 已同步：$(ls "$CUSTOM_SKILLS_DIR")"
+  echo "自定义 skills 已同步：$(ls "$SEED_DIR/skills")"
 fi
+
+# 参考文档：可安全覆盖（纯参考，不含 agent 自维护状态）
+for f in WORKSPACE_DESIGN.md IMAGE_GENERATE_NOTE.md; do
+  if [ -f "$SEED_DIR/$f" ]; then
+    cp "$SEED_DIR/$f" "$WORKSPACE_DIR/$f"
+  fi
+done
+
+chown -R 1000:1000 "$WORKSPACE_DIR"
+echo "workspace 参考文档与技能已同步（未触碰 agent 自维护文件）"
 
 # 应用变更（新增/修改的服务会被构建并启动）
 echo ""

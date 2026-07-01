@@ -64,19 +64,38 @@ TOKEN=$(openssl rand -hex 32)
 sed -i "s/\"token\": \"[^\"]*\"/\"token\": \"$TOKEN\"/g" "$CONFIG_DST"
 echo "Gateway token 已生成并写入配置"
 
-# 同步自定义 skills（仓库 custom-skills/ → data/workspace/skills/）
-CUSTOM_SKILLS_DIR="$DEPLOY_DIR/custom-skills"
-WORKSPACE_SKILLS_DIR="$DATA_DIR/workspace/skills"
-if [ -d "$CUSTOM_SKILLS_DIR" ] && [ -n "$(ls -A "$CUSTOM_SKILLS_DIR" 2>/dev/null)" ]; then
-  mkdir -p "$WORKSPACE_SKILLS_DIR"
-  for skill_dir in "$CUSTOM_SKILLS_DIR"/*/; do
+# 种入 agent 初始大脑（workspace-seed/ → data/workspace/）
+SEED_DIR="$DEPLOY_DIR/workspace-seed"
+WORKSPACE_DIR="$DATA_DIR/workspace"
+mkdir -p "$WORKSPACE_DIR"
+
+# 根级规则/人设/参考文件：不存在才种入，避免覆盖 agent 已维护的内容
+for f in AGENTS.md SOUL.md TOOLS.md IDENTITY.md USER.md HEARTBEAT.md WORKSPACE_DESIGN.md IMAGE_GENERATE_NOTE.md; do
+  if [ -f "$SEED_DIR/$f" ] && [ ! -f "$WORKSPACE_DIR/$f" ]; then
+    cp "$SEED_DIR/$f" "$WORKSPACE_DIR/$f"
+  fi
+done
+
+# 技能：整体覆盖同步（seed/skills/ → workspace/skills/）
+if [ -d "$SEED_DIR/skills" ]; then
+  mkdir -p "$WORKSPACE_DIR/skills"
+  for skill_dir in "$SEED_DIR"/skills/*/; do
     name="$(basename "$skill_dir")"
-    rm -rf "$WORKSPACE_SKILLS_DIR/$name"
-    cp -r "$skill_dir" "$WORKSPACE_SKILLS_DIR/$name"
+    rm -rf "$WORKSPACE_DIR/skills/$name"
+    cp -r "$skill_dir" "$WORKSPACE_DIR/skills/$name"
   done
-  chown -R 1000:1000 "$WORKSPACE_SKILLS_DIR"
-  echo "自定义 skills 已同步：$(ls "$CUSTOM_SKILLS_DIR")"
+  echo "自定义 skills 已同步：$(ls "$SEED_DIR/skills")"
 fi
+
+# 每实例 BOOTSTRAP.md：从模板生成（openclaw 首启读后自删）
+if [ -f "$SEED_DIR/BOOTSTRAP.md.tpl" ] && [ ! -f "$WORKSPACE_DIR/BOOTSTRAP.md" ]; then
+  export INSTANCE_ROLE="${INSTANCE_ROLE:-通用个人助手}"
+  envsubst < "$SEED_DIR/BOOTSTRAP.md.tpl" > "$WORKSPACE_DIR/BOOTSTRAP.md"
+  echo "BOOTSTRAP.md 已生成（实例: $INSTANCE_NAME, 定位: $INSTANCE_ROLE）"
+fi
+
+chown -R 1000:1000 "$WORKSPACE_DIR"
+echo "workspace 种子已种入：$WORKSPACE_DIR"
 
 # 启动容器
 echo ""
