@@ -224,19 +224,24 @@ Think of it like a human reviewing their journal and updating their mental model
 
 The goal: Be helpful without being annoying. Check in a few times a day, do useful background work, but respect quiet time.
 
-## 工作区目录规范（房规 · 每轮生效）
+## 工作区规范（房规 · 每轮生效）
 
-保持 workspace 根目录干净，按类归档，敏感信息只进 `.secrets/`：
+保持 workspace 根目录干净：根目录只放入口文件（`AGENTS.md` `SOUL.md` `USER.md` `TOOLS.md` `IDENTITY.md` `HEARTBEAT.md` `MEMORY.md`）和下列顶层目录，其它一律分类归档——不要把临时脚本、下载文件、缓存、依赖随手堆在根目录。
 
-- 脚本 → `tools/<domain>/<task>/`
-- 可复用流程/SOP → `skills/<prefix>-<name>/SKILL.md`（自定义 skill 必须带前缀：公司业务 `linkfog-`，个人通用 `kingsh2012-`）
-- 生成结果 → `outputs/`（按类型分子目录，敏感先脱敏）
-- 备份 → `backups/<domain>/`（改线上配置前先 inspect→备份→合并，勿盲目覆盖）
-- 缓存 → `cache/`；依赖 → `deps/`；敏感凭据 → `.secrets/`（700，一服务一 JSON，缺字段不崩溃、向用户要）
-- 日常记录 → `memory/YYYY-MM-DD.md`；长期沉淀 → `MEMORY.md`
-- 移动文件要同步更新引用并做最小验证（py_compile / bash -n / node --check）
+**目录归属：**
 
-> 完整规则见 workspace 根目录 `WORKSPACE_DESIGN.md`，做大的整理/迁移前先读它。
+- **`tools/`** — 业务脚本、自动化脚本、helper。按 `tools/<domain>/<task>/` 组织（如 `tools/aliyun/eip/`、`tools/qiniu/`）。非敏感配置放 `config.example.json`；真实凭据不进 `tools/`。
+- **`skills/`** — 可复用 SOP / 业务流程，结构 `skills/<skill-name>/SKILL.md`。**自定义 skill 必须带前缀**：公司业务用 `linkfog-`，个人通用用 `kingsh2012-`；拿不准选 `kingsh2012-`，绝不无前缀。skill 只写流程/约束/非敏感路径；需要凭据只写“见 `.secrets/<name>.json`”，不展开内容。
+- **`outputs/`** — 生成结果，按类型分子目录（`csv/ json/ text/ excel/ images/ reports/`）。可能含敏感信息的先脱敏。
+- **`backups/`** — 备份快照，`backups/<domain>/`，文件名带时间戳。
+- **`cache/`** — 运行/构建缓存（`pycache/ site/ tmp/`）。Python 用 `PYTHONPYCACHEPREFIX=…/workspace/cache/pycache`，别让 `__pycache__` 散落业务目录。
+- **`deps/`** — 项目依赖（`node/ python/ bin/`），根目录不留 `node_modules/`。
+- **`.secrets/`** — 一切敏感信息（密码、API Key、AK/SK、token、webhook、SSH key、DSN、生产配置、安全组规则…）只放这里。一服务一 JSON（`.secrets/<service>.json`，skill 专用则用 skill 名），按 section 分组，目录 700、文件 600。**凭据缺失或字段不全时不要崩溃**：列出缺哪些字段、让用户在聊天里提供，你拿到后自己补全该文件再重试，且不要把凭据回显到聊天。
+- **`memory/`** — 日常记录与长期沉淀，用法见上文 **Memory** 一节（此处不重复）。记录里不写凭据，涉敏只写路径或脱敏摘要。
+
+**配置与安全操作**（展开上面 Red Lines 那条）：改 crontab / systemd / nginx / 数据库 / 防火墙 / 生产脚本 / 调度任务前，默认走：① 先 inspect 现状 →② 备份到 `backups/<domain>/` →③ 合并修改、不盲目整文件覆盖 →④ 最小验证 →⑤ 只汇报变化，不把敏感配置全文贴回聊天。
+
+> 要把一个已有 workspace 整理成这套布局、或做大范围文件迁移时，按 `WORKSPACE_DESIGN.md` 的步骤操作（目录初始化、移动+更新引用+验证的流程都在那）。
 > `image_generate` 等生图工具的坑与规则见 `IMAGE_GENERATE_NOTE.md`。
 
 ## Make It Yours

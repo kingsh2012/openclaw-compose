@@ -10,12 +10,12 @@
 
 | 文件 | 作用 | 加载时机 |
 |---|---|---|
-| `AGENTS.md` | 运行铁律 + 工作区目录规范摘要 | openclaw **每轮**注入上下文 |
+| `AGENTS.md` | 运行铁律 + 完整工作区规范（内联，每轮生效） | openclaw **每轮**注入上下文 |
 | `SOUL.md` | 性格底子 | 每轮注入 |
 | `IDENTITY.md` / `USER.md` | 身份 / 服务对象模板（首启由 agent 按业务填） | 每轮注入 |
 | `TOOLS.md` | 环境相关的本地备注模板 | 按需 |
 | `HEARTBEAT.md` | 心跳清单（默认空） | 心跳时 |
-| `WORKSPACE_DESIGN.md` | 完整目录规范（AGENTS.md 里是摘要，这里是全文） | agent 按需读 |
+| `WORKSPACE_DESIGN.md` | workspace 迁移/整理**操作指南**（规则在 AGENTS.md，这里是动手步骤） | agent 按需读 |
 | `IMAGE_GENERATE_NOTE.md` | 生图工具的坑与规则说明 | agent 按需读 |
 | `skills/` | 自定义技能（每个 `<prefix>-<name>/SKILL.md`） | agent 按需调用 |
 | `BOOTSTRAP.md.tpl` | **每实例差异**模板，由 `.env` 生成 `BOOTSTRAP.md` | 首启读一次后自删 |
